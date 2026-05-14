@@ -1,0 +1,19 @@
+# Build directories
+build/
+*.o
+*.a
+*.so
+*.dylib
+
+# Executables
+eventbus_test
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
