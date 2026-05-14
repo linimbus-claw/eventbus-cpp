@@ -8,6 +8,8 @@
 - 消息内容匹配
 - 线程安全
 
+**GitHub**: https://github.com/linimbus-claw/eventbus-lib
+
 ## 构建
 
 ```bash
@@ -27,40 +29,27 @@ make
 ```cpp
 #include "eventbus.hpp"
 
-// 定义消息
-struct LoginEvent {
-    std::string user;
-    int age;
-};
-
-struct LogoutEvent {
-    std::string user;
-};
-
-// 注册消息类型
-EVENTBUS_REGISTER(LoginEvent, "login")
-EVENTBUS_REGISTER(LogoutEvent, "logout")
-
 int main() {
     EventBus eb;
     
     // 单事件订阅
-    eb.subscribe<LoginEvent>([](const LoginEvent& e) {
-        std::cout << "User logged in: " << e.user << std::endl;
+    eb.subscribe("login", [](const Message& msg) {
+        std::cout << "User: " << msg.getString("username") << std::endl;
     });
     
     // 发布事件
-    eb.publish(LoginEvent{"Alice", 25});
+    Message msg;
+    msg.type = "login";
+    msg.set("username", "Alice");
+    eb.publish(msg);
     
     // 多事件订阅（等待 login + logout 都发布后才触发）
-    eb.subscribeMulti<std::tuple<LoginEvent, LogoutEvent>>(
-        [](const LoginEvent& login, const LogoutEvent& logout) {
-            std::cout << login.user << " logged out after logging in" << std::endl;
-        }
-    );
+    eb.subscribeMultiTypes({"order_created", "payment"}, [](const std::vector<Message>& events) {
+        std::cout << "Order completed!" << std::endl;
+    });
     
-    eb.publish(LoginEvent{"Bob", 30});
-    eb.publish(LogoutEvent{"Bob"});
+    eb.publish(Message("order_created"));
+    eb.publish(Message("payment"));  // 触发回调
     
     return 0;
 }
